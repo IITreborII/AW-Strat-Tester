@@ -58,13 +58,64 @@ onPlayerSpawned()
 		
         wait 5;
 		
-        self iprintln("Strat Tester");
+        self iprintln("^5S^7trat Tester");
+
+        mapName = maps\mp\_utility::getmapname();
+        switch ( mapName )
+        {
+            case "mp_zombie_lab": //Outbreak
+                loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"]; //Wanted Loadout 
+
+                self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
+
+                setweaponlevel( self, loadout[0], 1 );
+                setweaponlevel( self, loadout[1], 1 );
+
+                break;
+
+            case "mp_zombie_brg": //Infection
+                loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"]; //Wanted Loadout 
+
+                self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
+
+                setweaponlevel( self, loadout[0], 1 );
+                setweaponlevel( self, loadout[1], 1 ); 
+
+                break;  
+
+            case "mp_zombie_ark":  //Carrier
+                loadout = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"]; //Wanted Loadout 
+
+                self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
+
+                setweaponlevel( self, loadout[0], 1 );
+                setweaponlevel( self, loadout[1], 1 );    
+
+                break;      
+
+            case "mp_zombie_h2o": //Descent
+                loadout = ["iw5_tridentzm_mp", "iw5_dlcgun4zm_mp"]; //Wanted Loadout 
+
+                self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
+
+                setweaponlevel( self, loadout[0], 1 );
+                setweaponlevel( self, loadout[1], 1 );             
+                break;      
+
+            default:
+                return;                
+        }
+
+        // give drone
+        self settacticalweapon( "distraction_drone_zombie_mp" );
+        self giveweapon( "distraction_drone_zombie_mp" );
+        self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
 		
         //Gives Exo upgrades depending on Map
         mapName = maps\mp\_utility::getmapname();
         switch ( mapName )
         {
-            case "mp_zombie_lab":
+            case "mp_zombie_lab": //Outbreak
                 perkterminalgive(self, "exo_suit");
                 perkterminalgive(self, "exo_stabilizer");
                 perkterminalgive(self, "exo_revive");
@@ -73,7 +124,7 @@ onPlayerSpawned()
                 perkterminalgive(self, "exo_health");
                 break;
 
-            case "mp_zombie_brg":
+            case "mp_zombie_brg": //Infection
                 perkterminalgive(self, "exo_suit");
                 perkterminalgive(self, "exo_stabilizer");
                 perkterminalgive(self, "exo_revive");
@@ -82,7 +133,7 @@ onPlayerSpawned()
                 perkterminalgive(self, "exo_health");
                 break;
 
-            case "mp_zombie_ark":
+            case "mp_zombie_ark": //Carrier
                 perkterminalgive(self, "exo_suit");
                 perkterminalgive(self, "exo_stabilizer");
                 perkterminalgive(self, "exo_revive");
@@ -92,7 +143,7 @@ onPlayerSpawned()
                 perkterminalgive(self, "exo_tacticalArmor");
                 break;            
 
-            case "mp_zombie_h2o":
+            case "mp_zombie_h2o": //Descent
                 perkterminalgive(self, "exo_suit");
                 perkterminalgive(self, "exo_stabilizer");
                 perkterminalgive(self, "exo_revive");
