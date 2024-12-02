@@ -15,7 +15,7 @@ init()
 
 settings()
 {
-    level.start_round = 1;
+    level.start_round = 70;
 	level.waitbs = 30;
 }
 
@@ -161,7 +161,7 @@ onPlayerSpawned()
 
 set_starting_round()
 {
-	create_dvar( "start_round", 1 );
+	create_dvar( "start_round", 70 );
 	level.start_round = getDvarInt( "start_round" );
     level.start_round -= 1;
 
