@@ -98,8 +98,8 @@ onPlayerSpawned()
 
                 self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
 
-                setweaponlevel( self, loadout[0], 1 );
-                setweaponlevel( self, loadout[1], 1 );             
+                setweaponlevel( self, loadout[0], 10 );			
+                setweaponlevel( self, loadout[1], 10 );             
                 break;      
 
             default:
