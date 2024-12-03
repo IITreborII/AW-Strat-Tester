@@ -15,7 +15,7 @@ init()
 
 settings()
 {
-    level.start_round = 70;
+    level.start_round = 30;
 	level.waitbs = 30;
 }
 
@@ -48,7 +48,7 @@ onPlayerSpawned()
         resetmoney( 500000 );
 
         // unlimited revive + HUD
-		self thread wait_before_start();
+	self thread wait_before_start();
         self thread give_perk_onRevive();
 
         // set round
@@ -68,8 +68,8 @@ onPlayerSpawned()
 
                 self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
 
-                setweaponlevel( self, loadout[0], 1 );
-                setweaponlevel( self, loadout[1], 1 );
+                setweaponlevel( self, loadout[0], 10 );
+                setweaponlevel( self, loadout[1], 10 );
 
                 break;
 
@@ -78,8 +78,8 @@ onPlayerSpawned()
 
                 self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
 
-                setweaponlevel( self, loadout[0], 1 );
-                setweaponlevel( self, loadout[1], 1 ); 
+                setweaponlevel( self, loadout[0], 10 );
+                setweaponlevel( self, loadout[1], 10 ); 
 
                 break;  
 
@@ -88,8 +88,8 @@ onPlayerSpawned()
 
                 self takeweapon( "iw5_titan45zm_mp" );                // remove default weapon and gives wanted Loadout 
 
-                setweaponlevel( self, loadout[0], 1 );
-                setweaponlevel( self, loadout[1], 1 );    
+                setweaponlevel( self, loadout[0], 10 );
+                setweaponlevel( self, loadout[1], 10 );    
 
                 break;      
 
@@ -161,8 +161,8 @@ onPlayerSpawned()
 
 set_starting_round()
 {
-	create_dvar( "start_round", 70 );
-	level.start_round = getDvarInt( "start_round" );
+    create_dvar( "start_round", 30 );
+    level.start_round = getDvarInt( "start_round" );
     level.start_round -= 1;
 
 }
