@@ -1,7 +1,7 @@
 # AW-Strat-Tester
 A Patch to test Strategys on Call of Duty: Advanced Warfare.
 
-This strat tester is for advanced warfare zombie. Created by Foedie, llGaryyll & rFancy. 
+This strat tester is for advanced warfare zombie. Created by Foedi, llGaryyll (& small features rFancy.) 
 
 You can use 2 commands, start_round and wait_start.
  
