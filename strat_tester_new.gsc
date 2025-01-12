@@ -56,7 +56,7 @@ change_dvar()
     resetmoney( 500000 );
 
     level.start_round = 30;
-	level.waitbs = 30;
+    level.waitbs = 30;
 }
 
 set_starting_round()
