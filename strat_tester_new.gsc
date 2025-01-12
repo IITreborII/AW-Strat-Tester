@@ -37,7 +37,7 @@ onPlayerSpawned()
         self thread change_dvar();
         self thread wait_before_start();
         self thread give_upgrades();
-        self thread give_perk_onRevive();        
+        self thread give_perk_onRevive();      
 
         set_starting_round();
         level.wavecounter = level.start_round;
@@ -56,7 +56,7 @@ change_dvar()
     resetmoney( 500000 );
 
     level.start_round = 30;
-    level.waitbs = 30;
+	level.waitbs = 30;
 }
 
 set_starting_round()
@@ -91,6 +91,7 @@ wait_before_start()
 
 give_loadout()
 {
+    wait 6;
     mapName = maps\mp\_utility::getmapname();
     switch ( mapName )
     {
