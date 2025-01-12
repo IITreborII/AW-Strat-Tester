@@ -7,7 +7,6 @@ Some basics features are available for now, look at the following roadmap for mo
 ## Roadmap
 
 - [x] Give starting loadout depending on map
-- [ ] Editing loadout using dvar
 - [x] Give all Exo upgrades depending on map
 - [x] Game starting round, can be edited using the following dvar
 ```
@@ -19,6 +18,9 @@ wait_start 60
 ```
 - [ ] Round timer
 - [ ] SPH timer
+- [ ] Zone Hud
+- [ ] Editing loadout using dvar
+- [ ] Velocity Meter
 
 More to come..
 
@@ -27,7 +29,7 @@ More to come..
 - wait_start dvar not working on Infection
 - Weird behaviour in toxic zones, and during survivors round (like have 2 consecutive toxic rounds or survivors)
 - On Infection Goliath Round doesn't happen every 10 rounds as it should be
-- Round past 162 aren't playable
+- Round past 162 aren't playable (Just an issue from the Strat Tester)
 
 ## Credits
 
