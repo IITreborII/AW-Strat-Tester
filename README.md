@@ -27,7 +27,6 @@ More to come..
 
 ## Known Bugs
 
-- wait_start dvar not working on Infection
 - Weird behaviour in toxic zones, and during survivors round (like have 2 consecutive toxic rounds or survivors)
 - On Infection Goliath Round doesn't happen every 10 rounds as it should be
 - Round past 162 aren't playable (Just an issue from the Strat Tester)
