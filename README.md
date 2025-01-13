@@ -34,6 +34,6 @@ More to come..
 ## Credits
 
 - **Developer at origins of the project**: [FOEDI](https://github.com/FOEDI)
-- **Developer at origins of the project**:[llGaryyll](https://www.twitch.tv/ligaryyil)
+- **Developer at origins of the project**: [llGaryyll](https://www.twitch.tv/ligaryyil)
 - **Developer**: [rFancy](https://github.com/IITreborII)
 
