@@ -21,6 +21,7 @@ wait_start 60
 - [ ] Zone Hud
 - [ ] Editing loadout using dvar
 - [ ] Velocity Meter
+- [ ] Open Doors on/off
 
 More to come..
 
