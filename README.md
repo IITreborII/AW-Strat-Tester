@@ -35,4 +35,4 @@ More to come..
 
 - **Developer at origins of the project**: [FOEDI](https://github.com/FOEDI)
 - **Developer**: [rFancy](https://github.com/IITreborII)
-- **Tester/Suggestion**: llGaryyll
+- **Tester/Suggestion(at origins of the project)**: llGaryyll
