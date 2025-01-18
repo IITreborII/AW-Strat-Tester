@@ -4,6 +4,13 @@ A Patch to test Strategys on Call of Duty: Advanced Warfare.
 
 Some basics features are available for now, look at the following roadmap for more infos.
 
+## How to use Patch
+
+1. Download S1x Files (https://mega.nz/folder/oLAViLiZ#3xUbLir3T9AdB51FqdhPlQ)
+2. Put S1X Files inside your Game folder
+3. Open the "S1x" Folder and inside create a Folder called "scripts"
+4. Drag and Drop the patch inside "scripts" Folder.
+
 ## Roadmap
 
 - [x] Give starting loadout depending on map
