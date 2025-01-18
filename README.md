@@ -59,5 +59,5 @@ velocity_hud 0/1
 - **Developer at origins of the project**: [FOEDI](https://github.com/FOEDI)
 - **Developer at origins of the project**: [llGaryyll](https://www.twitch.tv/ligaryyil)
 
-- **Scripts Provider**: Bread&Butter
+- **Small help from**: Bread&Butter
 
