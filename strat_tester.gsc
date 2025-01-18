@@ -55,6 +55,8 @@ settings()
     create_dvar("velocity_hud", 0);
     create_dvar("zone_hud", 0);
 
+    create_dvar("weapon_preset", "hr");
+
     create_dvar( "start_round", 30 );
     level.start_round = getDvarInt( "start_round" );
     level.start_round = 30;
@@ -95,47 +97,27 @@ wait_before_start()
 
 give_loadout()
 {
-    mapName = maps\mp\_utility::getmapname();
-    wait 5;
-    switch ( mapName )
+    weapon_preset = getDvar("weapon_preset");
+
+    if (weapon_preset == "hr")
     {
-        case "mp_zombie_lab": //Outbreak
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"]; 
-            setweaponlevel( self, loadout[1], 15);
-            setweaponlevel( self, loadout[0], 15);
-            break;
-
-        case "mp_zombie_brg": //Infection
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"];                 
-            setweaponlevel( self, loadout[1], 15);
-            setweaponlevel( self, loadout[0], 15); 
-            break;  
-
-        case "mp_zombie_ark":  //Carrier
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"];                
-            setweaponlevel( self, loadout[1], 15);
-            setweaponlevel( self, loadout[0], 15);    
-            break;      
-
-        case "mp_zombie_h2o": //Descent
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_tridentzm_mp", "iw5_dlcgun4zm_mp"];               
-            setweaponlevel( self, loadout[1], 15);			
-            setweaponlevel( self, loadout[0], 15);             
-            break;    
-
-        return;                
+        self thread give_hr_loadout();
     }
-    self settacticalweapon( "distraction_drone_zombie_mp" );
-    self giveweapon( "distraction_drone_zombie_mp" );
-    self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
+    else if (weapon_preset == "lr")
+    {
+        self thread give_lr_loadout();
+    }
+    else if (weapon_preset == "fr")
+    {
+        self thread give_fr_loadout();
+    }
 }
 
 give_upgrades()
 {
+    weapon_preset = getDvar("weapon_preset");
+    if (weapon_preset == "fr")
+        return;
     mapName = maps\mp\_utility::getmapname();
     switch ( mapName )
     {
@@ -185,6 +167,11 @@ give_perk_onRevive()
 {
     self endon("disconnect");
     level endon("game_ended");
+
+    weapon_preset = getDvar("weapon_preset");
+    if (weapon_preset == "fr")
+        return;
+        
     while(1)
     {
         self waittill("revive_trigger");                   
@@ -347,5 +334,121 @@ zoneHud() /*Credit: Bread&Butter (small adjustments by rFancy)*/
         }
 		wait 0.1;
 	}
+}
+
+give_fr_loadout()
+{
+    mapName = maps\mp\_utility::getmapname();
+    wait 5;
+
+    switch ( mapName )
+    {
+        case "mp_zombie_brg":
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = [ "iw5_fusionzm_mp", "iw5_rhinozm_mp" ]; 
+            setweaponlevel( self, loadout[1], 1);
+            setweaponlevel( self, loadout[0], 1);
+
+            self settacticalweapon( "distraction_drone_zombie_mp" );
+            self giveweapon( "distraction_drone_zombie_mp" );
+            self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
+        break;
+
+        case "mp_zombie_h2o":
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = [ "iw5_dlcgun4zm_mp", "iw5_rhinozm_mp" ]; 
+            setweaponlevel( self, loadout[1], 15);
+            setweaponlevel( self, loadout[0], 2);
+            
+            self settacticalweapon( "distraction_drone_zombie_mp" );
+            self giveweapon( "distraction_drone_zombie_mp" );
+            self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
+        break;
+            return;
+    }
+}
+
+give_lr_loadout()
+{
+    mapName = maps\mp\_utility::getmapname();
+    wait 5;
+
+    switch ( mapName )
+    {
+        case "mp_zombie_lab": //Outbreak
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = [ "iw5_mahemzm_mp", "iw5_rhinozm_mp" ]; 
+            setweaponlevel( self, loadout[1], 2);
+            setweaponlevel( self, loadout[0], 2);
+            break;
+
+        case "mp_zombie_brg": //Infection
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = [ "iw5_mahemzm_mp", "iw5_fusionzm_mp" ];                 
+            setweaponlevel( self, loadout[1], 2);
+            setweaponlevel( self, loadout[0], 2); 
+            break;  
+
+        case "mp_zombie_ark":  //Carrier
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"];                
+            setweaponlevel( self, loadout[1], 2);
+            setweaponlevel( self, loadout[0], 2);    
+            break;      
+
+        case "mp_zombie_h2o": //Descent
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = ["iw5_tridentzm_mp", "iw5_rhinozm_mp"];               
+            setweaponlevel( self, loadout[1], 2);			
+            setweaponlevel( self, loadout[0], 2);             
+            break;    
+
+        return;                
+    }
+    self settacticalweapon( "dna_aoe_grenade_zombie_mp" );
+    self giveweapon( "dna_aoe_grenade_zombie_mp" );
+    self setweaponammoclip( "dna_aoe_grenade_zombie_mp", 2 );
+}
+
+give_hr_loadout()
+{
+    mapName = maps\mp\_utility::getmapname();
+    wait 5;
+
+    switch ( mapName )
+    {
+        case "mp_zombie_lab": //Outbreak
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"]; 
+            setweaponlevel( self, loadout[1], 15);
+            setweaponlevel( self, loadout[0], 15);
+            break;
+
+        case "mp_zombie_brg": //Infection
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"];                 
+            setweaponlevel( self, loadout[1], 15);
+            setweaponlevel( self, loadout[0], 15); 
+            break;  
+
+        case "mp_zombie_ark":  //Carrier
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"];                
+            setweaponlevel( self, loadout[1], 15);
+            setweaponlevel( self, loadout[0], 15);    
+            break;      
+
+        case "mp_zombie_h2o": //Descent
+            self takeweapon( "iw5_titan45zm_mp" );
+            loadout = ["iw5_tridentzm_mp", "iw5_dlcgun4zm_mp"];               
+            setweaponlevel( self, loadout[1], 15);			
+            setweaponlevel( self, loadout[0], 15);             
+            break;    
+
+        return;                
+    }
+    self settacticalweapon( "distraction_drone_zombie_mp" );
+    self giveweapon( "distraction_drone_zombie_mp" );
+    self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
 }
 
