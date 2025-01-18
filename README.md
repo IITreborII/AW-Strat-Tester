@@ -12,12 +12,12 @@ Some basics features are available for now, look at the following roadmap for mo
 - [x] Velocity Meter
 - [x] Set Starting round
 - [x] Delay before activating the zombies spawns
+- [x] Different Weapon Presets 
 
 More to come... 
 
 - [ ] Round timer
 - [ ] SPH timer
-- [ ] Editing loadout using dvar
 - [ ] Open Doors on/off
 
 # How to use
@@ -29,6 +29,11 @@ start_round 100
 ## Delay before activating the zombies spawns, can be edited using the following dvar (time in seconds)
 ```
 wait_start 60
+```
+
+## How to change Weapon preset (hr = High Round, lr = Low Round, fr = First Room)
+```
+weapon_preset "hr/lr/fr"
 ```
 
 ## Zone Hud on/off can be edited using the following dvar
