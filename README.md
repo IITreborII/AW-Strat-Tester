@@ -20,28 +20,28 @@ More to come...
 - [ ] SPH timer
 - [ ] Open Doors on/off
 
-# How to use
-## Game starting round, can be edited using the following dvar
+## How to use
+### Game starting round, can be edited using the following dvar
 ```
 start_round 100
 ```
 
-## Delay before activating the zombies spawns, can be edited using the following dvar (time in seconds)
+### Delay before activating the zombies spawns, can be edited using the following dvar (time in seconds)
 ```
 wait_start 60
 ```
 
-## How to change Weapon preset (hr = High Round, lr = Low Round, fr = First Room)
+### How to change Weapon preset (hr = High Round, lr = Low Round, fr = First Room)
 ```
 weapon_preset "hr/lr/fr"
 ```
 
-## Zone Hud on/off can be edited using the following dvar
+### Zone Hud on/off can be edited using the following dvar
 ```
 zone_hud 0/1
 ```
 
-## Velocity Meter on/off can be edited using the following dvar
+### Velocity Meter on/off can be edited using the following dvar
 ```
 velocity_hud 0/1
 ```
