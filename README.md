@@ -1,70 +1,89 @@
-# AW-Strat-Tester
+# Advanced Warfare Strat Tester 
 
-A Patch to test Strategys on Call of Duty: Advanced Warfare.
+This is a mod for creating, testing, and learning new strategies in Call of Duty: Advanced Warfare. 
 
-Some basics features are available for now, look at the following roadmap for more infos.
+This mod is meant to be an all-encompassing mod, with loads of features and options to give yourself the loadout and map setup you need to practice your strategies.
 
-## How to use Patch
+## Installing
 
-1. Download S1x Files (https://mega.nz/folder/oLAViLiZ#3xUbLir3T9AdB51FqdhPlQ)
-2. Put S1X Files inside your Game folder
-3. Open the "S1x" Folder and inside create a Folder called "scripts"
-4. Drag and Drop the patch inside "scripts" Folder.
+1. Install [S1x_Files](https://mega.nz/folder/oLAViLiZ#3xUbLir3T9AdB51FqdhPlQ).
+1. Drag S1x Files into your Game Folder.
+1. Create a "s1x" Folder if needed.
+1. Create a "scripts" Folder inside "s1x" Folder.
+1. Drag and Drop the Strat Tester script inside "scripts" Folder.
 
-## Roadmap
+## Current Features:
 
-- [x] Give starting loadout depending on map
-- [x] Give all Exo upgrades depending on map
-- [x] Zone Hud
-- [x] Velocity Meter
-- [x] Set Starting round
-- [x] Delay before activating the zombies spawns
-- [x] Different Weapon Presets 
+*Note* Some settings require a "fast_restart" to take effect.
 
-More to come... 
+### General
+- 500,000 points on spawn
+- Perks reserved on down
+- Spawn in with some, all, or no perks
 
-- [ ] Round timer
-- [ ] SPH timer
-- [ ] Open Doors on/off
+### HUD
+- Current Zone
+- Velocity HUD
+- Zombie Counter (WIP)
+- Seconds Per Horde (WIP)
 
-## How to use
-### Game starting round, can be edited using the following dvar
-```
-start_round 100
-```
 
-### Delay before activating the zombies spawns, can be edited using the following dvar (time in seconds)
-```
-wait_start 60
-```
+### Round Settings
+- Set various starting rounds
+    - If you want to start on a round that is not in the options, you can do so with `start_round <number>` and restarting.
+- Set a delay to navigate to where you need to start the round at game start
+    - You can set a custom delay by typing `wait_start <seconds>`
 
-### How to change Weapon preset (hr = High Round, lr = Low Round, fr = First Room)
-```
-weapon_preset "hr/lr/fr"
-```
+### Perks & Drops
+- Choose what perks you spawn in with between High Rounds, First Room, No Power(WIP)
 
-### Zone Hud on/off can be edited using the following dvar
-```
-zone_hud 0/1
-```
+### Game Settings
+- Give weapons needed to perform a high-round game (typically the wonder-weapon, tactical grenade, and other weapons typically used in a high round game).
 
-### Velocity Meter on/off can be edited using the following dvar
-```
-velocity_hud 0/1
-```
+### Weapon Options
+- Gives Weapon depending on what Preset you choice
+    - High Rounds (hr), Low Rounds (lr), First Room (fr), No Power (np - WIP)
 
-## Known Bugs
+### Map Options
+- Work in Porgress
 
-- Weird behaviour in toxic zones, and during survivors round (like have 2 consecutive toxic rounds or survivors)
-- On Infection Goliath Round doesn't happen every 10 rounds as it should be
-- Round past 162 aren't playable (Just an issue from the Strat Tester)
-- Zone & Velocity Hud not working on Infection
+### Weapon presets
 
-## Credits
+- How to change Weapon Preset
 
-- **Developer**: [rFancy](https://github.com/IITreborII)
-- **Developer at origins of the project**: [FOEDI](https://github.com/FOEDI)
-- **Developer at origins of the project**: [llGaryyll](https://www.twitch.tv/ligaryyil)
+```weapon_preset "hr/lr/fr"```
 
-- **Small help from**: Bread&Butter
+**Missing a crucial feature for you to get better at the game? We are open to requests!**
+
+# Cheats
+
+## List of Useful Cheats
+
+- `/god` godmode
+- `/demigod` godmode but you still get hit
+- `/noclip` flying
+- `/fast_restart` restart map
+
+## List of Weapon Commands 
+
+- `give distraction_drone_zombie_mp` Drone 
+- `give dna_aoe_grenade_zombie_mp` Nano
+- `give iw5_microwavezm_mp` Magnetron
+- `give iw5_linegunzm_mp` Limbo
+- `give iw5_tridentzm_mp ` Trident
+- `give iw5_dlcgun4zm_mp` Blunderbuss
+
+# Credits
+
+## Direct Contributors
+
+- [rFancy](https://github.com/IITreborII)
+
+- [FOEDI](https://github.com/FOEDI)
+
+- [llGaryyll](https://www.twitch.tv/ligaryyil) 
+
+## Others
+
+Bread&Butter
 
