@@ -24,9 +24,6 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 ### HUD
 - Current Zone
 - Velocity HUD
-- Zombie Counter (WIP)
-- Seconds Per Horde (WIP)
-
 
 ### Round Settings
 - Set various starting rounds
@@ -35,17 +32,14 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
     - You can set a custom delay by typing `wait_start <seconds>`
 
 ### Perks & Drops
-- Choose what perks you spawn in with between High Rounds, First Room, No Power(WIP)
+- Choose what perks you spawn in with between High Rounds, First Room...
 
 ### Game Settings
 - Give weapons needed to perform a high-round game (typically the wonder-weapon, tactical grenade, and other weapons typically used in a high round game).
 
 ### Weapon Options
 - Gives Weapon depending on what Preset you choice
-    - High Rounds (hr), Low Rounds (lr), First Room (fr), No Power (np - WIP)
-
-### Map Options
-- Work in Porgress
+    - High Rounds (hr), Low Rounds (lr), First Room (fr)...
 
 ### Weapon presets
 
