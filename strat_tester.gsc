@@ -1,25 +1,71 @@
 #include maps\mp\gametypes\zombies;
+#include maps\mp\zombies\_zombies;
+#include maps\mp\zombies\zombies_spawn_manager;
+#include maps\mp\zombies\_doors;
 #include maps\mp\zombies\_terminals;
 #include maps\mp\zombies\_util;
 #include maps\mp\zombies\_wall_buys;
 #include maps\mp\_utility;
 #include common_scripts\utility;
 #include maps\mp\gametypes\_hud_util;
-#include maps\mp\zombies\zombies_spawn_manager;
-#include maps\mp\zombies\_zombies;
-#include maps\mp\zombies\_doors;
 
 init()
 {    
+    level.mapName = maps\mp\_utility::getmapname();
+    
+    // Pre-calculate door bitmasks if they don't exist
+    if (!isdefined(level.doorbitmaskarray))
+    {
+        level.doorbitmaskarray = [];
+    }
+    
     level thread onPlayerConnect();
+    level thread opendoors();
 }
 
 onPlayerConnect()
 {
+    level endon("game_ended");
+    
     for(;;)
     {
         level waittill("connected", player);
+        if (!isDefined(player.persistentInit))
+        {
+            player.persistentInit = true;
+            player thread persistentPlayerInit();
+        }
         player thread onPlayerSpawned();
+    }
+}
+
+persistentPlayerInit()
+{
+    self endon("disconnect");
+    
+    // Cache weapon preset since it's used multiple times
+    self.weaponPreset = getDvar("weapon_preset");
+    
+    self thread settings();
+    if (self.weaponPreset != "fr") // Skip if fr preset
+    {
+        self thread give_perk_onRevive();
+    }
+    self thread initializeHUD();
+}
+
+initializeHUD()
+{
+    self endon("disconnect");
+    
+    // Only create HUD elements if enabled
+    if (getDvarInt("velocity_hud"))
+    {
+        self thread velocity_hud();
+    }
+    if (getDvarInt("zone_hud"))
+    {
+        self thread zoneHud();
     }
 }
 
@@ -27,152 +73,176 @@ onPlayerSpawned()
 {
     self endon("disconnect");
     level endon("game_ended");
+    iprintln("^5S^7trat Tester");
+    
     for(;;)
     {
         self waittill("spawned_player");
-        if(isDefined(self.playerSpawned))
-            continue;
-        self.playerSpawned = true;
         self freezeControls(false);
-
-        self thread settings();
-        // Initialize doors system & Open specific doors at map launch
-        opendoors();
-        // Delays Spawn when launching a map
+        
+        // Counter for completed threads
+        level.completedThreads = 0;
+        
+        // Start all threads
         self thread wait_before_start();
-        // Sets the starting Round 
         self thread set_starting_round();
-        // Gives Exo Suit and all Perks depending on choice
-        self thread give_upgrades();
-        // when you down you get your Perks back
-        self thread give_perk_onRevive();
-        // adds a Velocity (movement speed) Hud to the game (doesnt work for infection) 
-        self thread velocity_hud();
-        // adds a Zone Hud to the game (doesnt work for infection) 
-        self thread zoneHud();
-        // gives multiple choices of loadouts 
-        self thread give_loadout();
+        self thread give_player_assets();
+        
+        // Wait for all to complete
+        while(level.completedThreads < 3)
+        {
+            wait(0.05);
+        }
+    }
+}
 
-        level.wavecounter = level.start_round;
-        startinground = level.wavecounter + 1;
-
-        self iprintln("^5S^7trat Tester");
+give_player_assets()
+{
+    self endon("disconnect");
+    
+    // Initialize counter
+    self.assetsThreadsComplete = 0;
+    
+    // Start both threads
+    self thread give_upgrades();
+    self thread give_loadout();
+    
+    // Wait for both threads to complete
+    while(self.assetsThreadsComplete < 2)
+    {
+        wait(0.05);
     }
 }
 
 settings()
 {
-    setdvar( "sv_cheats", 1);
-    setdvar( "g_useholdtime", 0);
+    // Group related dvars together
+    setdvar("sv_cheats", 1);
+    setdvar("g_useholdtime", 0);
 
-    create_dvar("velocity_hud", 0);
-    create_dvar("zone_hud", 0);
-    create_dvar("open_doors", 1);
-    create_dvar("weapon_preset", "hr");
+    // Array of dvar pairs [name, value]
+    dvars = [];
+    dvars[dvars.size] = ["velocity_hud", "0"];
+    dvars[dvars.size] = ["zone_hud", "0"];
+    dvars[dvars.size] = ["open_doors", "1"];
+    dvars[dvars.size] = ["weapon_preset", "hr"];
+    dvars[dvars.size] = ["start_round", "30"];
+    dvars[dvars.size] = ["wait_start", "30"];
 
-    create_dvar( "start_round", 30 );
+    // Create all dvars using while loop
+    i = 0;
+    while(i < dvars.size)
+    {
+        create_dvar(dvars[i][0], dvars[i][1]);
+        i++;
+    }
+    
     level.start_round = 30;
-
-    create_dvar("wait_start", 30);
     level.waitbs = 30;
-
-    resetmoney( 500000 );
+    
+    resetmoney(500000);
 }
 
 opendoors()
 {   
-    open_doors = getDvarInt("open_doors");
-
-    if(open_doors == 0)
+    if(getDvarInt("open_doors") == 0)
         return;
         
     common_scripts\utility::flag_init("door_opened");
 
     if (!isdefined(level.doorhintstrings))
+    {
         level.doorhintstrings = [];
+    }
 
-    level.zombiedoors = common_scripts\utility::getstructarray("door", "targetname");
-    common_scripts\utility::array_thread(level.zombiedoors, ::init_door);
+    if (!isdefined(level.zombiedoors))
+    {
+        level.zombiedoors = common_scripts\utility::getstructarray("door", "targetname");
+        common_scripts\utility::array_thread(level.zombiedoors, ::init_door);
+    }
 
     // Wait for the map to load
     wait(1);
-    // Get current map name
-    current_map = maps\mp\_utility::getmapname();
     
-    // Initialize doors_to_open array with ALL possible doors (cuz switch statement is buggy due to some #include stuff)
-    doors_to_open = [
-        // outbreak doors
-        "courtyard_to_roundabout",
-        "roundabout_to_lab",
-        "roundabout_to_military",
-        "courtyard_to_administration",
-        "administration_to_lab",
-        "military_to_experimentation",
-        
-        // infection doors
-        "warehouse_to_gas_station",
-        "warehouse_to_atlas",
-        "gas_station_to_sewer",
-        "atlas_to_sewer",
-        "sewer_to_burgertown",
-        "sewertrans_to_sewertunnel",
-        "sewermain_to_sewercave",
-        "burgertown_storage",
-        "gas_station_interior",
-        "atlas_command",
-        
-        // carrier doors
-        "sidebay_to_armory",
-        "rearbay_to_armory",
-        "cargo_elevator_to_cargo_bay",
-        "biomed_to_cargo_bay",
-        "armory_to_biomed",
-        "armory_to_cargo_elevator",
-        "medical_to_biomed",
-        "moonpool_to_cargo_elevator",
-        "sidebay_to_medical",
-        "rearbay_to_moonpool",
-
-        // descent doors
-        "start_to_zone_01",
-        "start_to_zone_02",
-        "zone_01_to_atrium",
-        "zone_01_to_zone_01a",
-        "zone_02_to_zone_01",
-        "zone_02_to_zone_02a",
-        "zone_02a_to_venthall",
-        "venthall_to_zone_03",
-        "venthall_to_atrium",
-        "atrium_to_zone_04"
+    // Map-specific door sets
+    doorSets = [];
+    doorSets["mp_zombie_lab"] = [ // outbreak doors
+        "courtyard_to_roundabout", "roundabout_to_lab", "roundabout_to_military",
+        "courtyard_to_administration", "administration_to_lab", "military_to_experimentation"
     ];
     
-    // Open all doors that exist on this map
-    foreach(door_flag in doors_to_open)
+    doorSets["mp_zombie_brg"] = [ // infection doors
+        "warehouse_to_gas_station", "warehouse_to_atlas", "gas_station_to_sewer",
+        "atlas_to_sewer", "sewer_to_burgertown", "sewertrans_to_sewertunnel",
+        "sewermain_to_sewercave", "burgertown_storage", "gas_station_interior", "atlas_command"
+    ];
+    
+    doorSets["mp_zombie_ark"] = [ // carrier doors
+        "sidebay_to_armory", "rearbay_to_armory", "cargo_elevator_to_cargo_bay",
+        "biomed_to_cargo_bay", "armory_to_biomed", "armory_to_cargo_elevator",
+        "medical_to_biomed", "moonpool_to_cargo_elevator", "sidebay_to_medical", "rearbay_to_moonpool"
+    ];
+    
+    doorSets["mp_zombie_h2o"] = [ // descent doors
+        "start_to_zone_01", "start_to_zone_02", "zone_01_to_atrium",
+        "zone_01_to_zone_01a", "zone_02_to_zone_01", "zone_02_to_zone_02a",
+        "zone_02a_to_venthall", "venthall_to_zone_03", "venthall_to_atrium", "atrium_to_zone_04"
+    ];
+    
+    // Only process doors for current map
+    if (isdefined(doorSets[level.mapName]))
     {
-        foreach(door in level.zombiedoors)
+        foreach(door_flag in doorSets[level.mapName])
         {
-            if(isdefined(door.script_flag) && door.script_flag == door_flag)
+            foreach(door in level.zombiedoors)
             {
-                // Open the door by simulating a player purchase
-                door notify("open", undefined);
-                
-                // Set the door's opened bitmask
-                if(isdefined(level.doorbitmaskarray[door_flag]))
+                if(isdefined(door.script_flag) && door.script_flag == door_flag)
                 {
-                    level.doorsopenedbitmask |= level.doorbitmaskarray[door_flag];
+                    door notify("open", undefined);
+                    
+                    if(isdefined(level.doorbitmaskarray[door_flag]))
+                    {
+                        level.doorsopenedbitmask |= level.doorbitmaskarray[door_flag];
+                    }
                 }
             }
         }
     }
     
-    // Set the global door opened flag
     common_scripts\utility::flag_set("door_opened");
 }
 
 set_starting_round()
 {
-    level.start_round = getDvarInt( "start_round" );
-    level.start_round -= 1;    
+    self endon("disconnect");
+    
+    desired_round = getDvarInt("start_round");
+    if (desired_round < 1)
+        desired_round = 1;
+    
+    level.start_round = desired_round - 1;
+    level.wavecounter = level.start_round;
+    
+    // Set zombie manager values if available
+    if (isdefined(level.zombie_spawn_manager))
+    {
+        level.zombie_spawn_manager.current_round = level.start_round;
+        level.zombie_spawn_manager.next_round = level.start_round + 1;
+        
+        // Reset spawn counts for the new round
+        level.zombie_spawn_manager.zombies_spawned_this_round = 0;
+        level.zombie_spawn_manager.zombies_killed_this_round = 0;
+    }
+    
+    // Force update HUD if exists
+    if (isdefined(level.hud_round))
+    {
+        level.hud_round setValue(level.start_round + 1);
+    }
+    
+    // Notify completion
+    level.completedThreads++;
+    self notify("done");
 }
 
 wait_before_start()
@@ -183,84 +253,82 @@ wait_before_start()
     level.waitbs = getDvarInt("wait_start");
 
     maps\mp\zombies\_util::pausezombiespawning(1);
-    self.waithud.label = &"Starting in: ^5";
-    self.waithud maps\mp\gametypes\_hud_util::setpoint("CENTER", "CENTER", 0, 0);
+    
+    //Hud positioning
+    self.waithud = newHudElem(self);
+    self.waithud.horzAlign = "center";
+    self.waithud.vertAlign = "middle";
+    self.waithud.alignX = "center";
+    self.waithud.alignY = "middle";
+    self.waithud.x = 0;
+    self.waithud.y = 0;
+    self.waithud.fontscale = 1.5;
+    self.waithud.label = &"Starting in: ";
+    self.waithud setText(level.waitbs);
+    self.waithud.hidewheninmenu = true;
 
     while(level.waitbs > -1)
     {
-        self.waithud settext(level.waitbs);
+        self.waithud setText(level.waitbs);
         wait 1;
-        level.waitbs --;
+        level.waitbs--;
     }
+    
     maps\mp\zombies\_util::pausezombiespawning(0);
-    self.waithud destroy();
+    if(isdefined(self.waithud))
+    {
+        self.waithud destroy();
+    }
+    
+    // Notify completion
+    level.completedThreads++;
+    self notify("done");
 }
 
 give_loadout()
 {
-    weapon_preset = getDvar("weapon_preset");
-
-    if (weapon_preset == "hr")
+    switch(self.weaponPreset)
     {
-        self thread give_hr_loadout();
-    }
-    else if (weapon_preset == "lr")
-    {
-        self thread give_lr_loadout();
-    }
-    else if (weapon_preset == "fr")
-    {
-        self thread give_fr_loadout();
+        case "hr":
+            self thread give_hr_loadout();
+            break;
+        case "lr":
+            self thread give_lr_loadout();
+            break;
+        case "fr":
+            self thread give_fr_loadout();
+            break;
     }
 }
 
+// Optimized perk giving functions
 give_upgrades()
 {
-    weapon_preset = getDvar("weapon_preset");
-    if (weapon_preset == "fr")
+    if (self.weaponPreset == "fr")
         return;
-    mapName = maps\mp\_utility::getmapname();
-    switch ( mapName )
+
+    perks = [];
+    perks["mp_zombie_lab"] = [
+        "exo_suit", "exo_stabilizer", "exo_revive", 
+        "exo_slam", "specialty_fastreload", "exo_health"
+    ];
+    
+    perks["mp_zombie_brg"] = perks["mp_zombie_lab"]; // Same perks as lab
+    
+    perks["mp_zombie_ark"] = [
+        "exo_suit", "exo_stabilizer", "exo_revive", 
+        "exo_slam", "specialty_fastreload", "exo_health", 
+        "exo_tacticalArmor"
+    ];
+    
+    perks["mp_zombie_h2o"] = perks["mp_zombie_ark"]; // Same perks as ark
+
+    if (isdefined(perks[level.mapName]))
     {
-        case "mp_zombie_lab": //Outbreak
-            perkterminalgive(self, "exo_suit");
-            perkterminalgive(self, "exo_stabilizer");
-            perkterminalgive(self, "exo_revive");
-            perkterminalgive(self, "exo_slam");
-            perkterminalgive(self, "specialty_fastreload");
-            perkterminalgive(self, "exo_health");
-            break;
-
-        case "mp_zombie_brg": //Infection
-            perkterminalgive(self, "exo_suit");
-            perkterminalgive(self, "exo_stabilizer");
-            perkterminalgive(self, "exo_revive");
-            perkterminalgive(self, "exo_slam");
-            perkterminalgive(self, "specialty_fastreload");
-            perkterminalgive(self, "exo_health");
-            break;
-
-        case "mp_zombie_ark": //Carrier
-            perkterminalgive(self, "exo_suit");
-            perkterminalgive(self, "exo_stabilizer");
-            perkterminalgive(self, "exo_revive");
-            perkterminalgive(self, "exo_slam");
-            perkterminalgive(self, "specialty_fastreload");
-            perkterminalgive(self, "exo_health");
-            perkterminalgive(self, "exo_tacticalArmor");
-            break;    
-
-        case "mp_zombie_h2o": //Descent
-            perkterminalgive(self, "exo_suit");
-            perkterminalgive(self, "exo_stabilizer");
-            perkterminalgive(self, "exo_revive");
-            perkterminalgive(self, "exo_slam");
-            perkterminalgive(self, "specialty_fastreload");
-            perkterminalgive(self, "exo_health");
-            perkterminalgive(self, "exo_tacticalArmor");
-            break; 
-
-        return;
+        foreach(perk in perks[level.mapName])
+        {
+            perkterminalgive(self, perk);
+        }
     }
 }
 
@@ -269,286 +337,205 @@ give_perk_onRevive()
     self endon("disconnect");
     level endon("game_ended");
 
-    weapon_preset = getDvar("weapon_preset");
-    if (weapon_preset == "fr")
-        return;
-        
     while(1)
     {
-        self waittill("revive_trigger");                   
-        mapName = maps\mp\_utility::getmapname();
-        switch ( mapName )
-        {
-            case "mp_zombie_lab":
-                perkterminalgive(self, "exo_suit");
-                perkterminalgive(self, "exo_stabilizer");
-                perkterminalgive(self, "exo_revive");
-                perkterminalgive(self, "exo_slam");
-                perkterminalgive(self, "specialty_fastreload");
-                perkterminalgive(self, "exo_health");
-                break;
-
-            case "mp_zombie_brg":
-                perkterminalgive(self, "exo_suit");
-                perkterminalgive(self, "exo_stabilizer");
-                perkterminalgive(self, "exo_revive");
-                perkterminalgive(self, "exo_slam");
-                perkterminalgive(self, "specialty_fastreload");
-                perkterminalgive(self, "exo_health");
-                break;
-
-            case "mp_zombie_ark":
-                perkterminalgive(self, "exo_suit");
-                perkterminalgive(self, "exo_stabilizer");
-                perkterminalgive(self, "exo_revive");
-                perkterminalgive(self, "exo_slam");
-                perkterminalgive(self, "specialty_fastreload");
-                perkterminalgive(self, "exo_health");
-                perkterminalgive(self, "exo_tacticalArmor");
-                break;            
-
-            case "mp_zombie_h2o":
-                perkterminalgive(self, "exo_suit");
-                perkterminalgive(self, "exo_stabilizer");
-                perkterminalgive(self, "exo_revive");
-                perkterminalgive(self, "exo_slam");
-                perkterminalgive(self, "specialty_fastreload");
-                perkterminalgive(self, "exo_health");
-                perkterminalgive(self, "exo_tacticalArmor");
-                break;    
-
-            default:
-                return;
-        }
+        self waittill("revive_trigger");
+        self thread give_upgrades(); // Reuse the same function
     }
 }
 
-velocity_hud() /*Credit: Bread&Butter (small adjustments by rFancy)*/
+velocity_hud()
 {
-	self endon("disconnect");
-	level endon("game_ended");
+    self endon("disconnect");
+    level endon("game_ended");
 
-    velocity_hud = getDvarInt("velocity_hud");
+    vel_hud = newClientHudElem(self);
+    vel_hud.alignx = "right";
+    vel_hud.aligny = "top";
+    vel_hud.horzalign = "user_left";
+    vel_hud.vertalign = "user_top";
+    vel_hud.x -= 20;
+    vel_hud.y += 60;
+    vel_hud.fontscale = 1.0;
+    vel_hud.hidewheninmenu = 1;
+    vel_hud.label = &"Velocity: ";
+    vel_hud.alpha = 1;
 
-    if(velocity_hud == 0)
-        return;
-
-    mapName = maps\mp\_utility::getmapname();
-	
-	vel_hud = newClientHudElem(self);
-	vel_hud.alignx = "right";
-	vel_hud.aligny = "top";
-	vel_hud.horzalign = "user_left";
-	vel_hud.vertalign = "user_top";
-	vel_hud.x -= 20;
-	vel_hud.y += 60;
-	vel_hud.fontscale = 1.0;
-	vel_hud.hidewheninmenu = 1;
-	vel_hud.label = &"Velocity: ";
-	vel_hud.alpha = 1;
-	while(true)
-	{
-        switch ( mapName )
-        {
-            case "mp_zombie_lab":
-                self.newvel = self getvelocity();
-                self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
-                self.vel = self.newvel;
-                vel_hud setvalue(floor(self.vel));
-                break;
-
-            /*
-            case "mp_zombie_ark":
-                self.newvel = self getvelocity();
-                self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
-                self.vel = self.newvel;
-                vel_hud setvalue(floor(self.vel));
-                break;
-            */    
-
-            case "mp_zombie_brg":
-                self.newvel = self getvelocity();
-                self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
-                self.vel = self.newvel;
-                vel_hud setvalue(floor(self.vel));
-                break;
-
-            case "mp_zombie_h2o":
-                self.newvel = self getvelocity();
-                self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
-                self.vel = self.newvel;
-                vel_hud setvalue(floor(self.vel));
-                break;
-
-            return;
-        }
+    while(true)
+    {
+        self.newvel = self getvelocity();
+        self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
+        vel_hud setvalue(floor(self.newvel));
         wait 0.05; 
-	}
+    }
 }
 
-zoneHud() /*Credit: Bread&Butter (small adjustments by rFancy)*/
+zoneHud()
 {
-	self endon("disconnect");
-	level endon("game_ended");
+    self endon("disconnect");
+    level endon("game_ended");
 
-    zone_hud = getDvarInt("zone_hud");
+    zone_hud = newClientHudElem(self);
+    zone_hud.alignx = "right";
+    zone_hud.aligny = "top";
+    zone_hud.horzalign = "user_left";
+    zone_hud.vertalign = "user_top";
+    zone_hud.x -= 20;
+    zone_hud.y += 75;
+    zone_hud.fontscale = 1.0;
+    zone_hud.hidewheninmenu = 1;
+    zone_hud.alpha = 1;
 
-    if(zone_hud == 0)
-        return;
-
-    mapName = maps\mp\_utility::getmapname(); 
-
-	zone_hud = newClientHudElem(self);
-	zone_hud.alignx = "right";
-	zone_hud.aligny = "top";
-	zone_hud.horzalign = "user_left";
-	zone_hud.vertalign = "user_top";
-	zone_hud.x -= 20;
-	zone_hud.y += 75;
-	zone_hud.fontscale = 1.0;
-	zone_hud.hidewheninmenu = 1;
-	zone_hud.alpha = 1;
-
-    mapName = maps\mp\_utility::getmapname(); 
-    while(true)   
-	{
-		switch ( mapName )
+    while(true)
+    {
+        if (isdefined(self.currentzone))
         {
-            case "mp_zombie_lab":
-                zone_hud setText(self.currentzone);
-                break;
-
-            /*
-            case "mp_zombie_brg":
-                zone_hud setText(self.currentzone);
-                break;  
-            */          
-
-            case "mp_zombie_ark":
-                zone_hud setText(self.currentzone);
-                break;
-
-            case "mp_zombie_h2o":
-                zone_hud setText(self.currentzone);
-                break;
-            return;                
+            zone_hud setText(self.currentzone);
         }
-		wait 0.1;
-	}
+        wait 0.1;
+    }
 }
 
 give_fr_loadout()
 {
-    mapName = maps\mp\_utility::getmapname();
     wait 5;
+    
+    // Initialize loadouts array
+    loadouts = [];
+    
+    // Create loadout structure for mp_zombie_brg
+    brg_loadout = [];
+    brg_loadout["weapons"] = ["iw5_fusionzm_mp", "iw5_rhinozm_mp"];
+    brg_loadout["levels"] = [1, 1];
+    brg_loadout["tactical"] = "distraction_drone_zombie_mp";
+    loadouts["mp_zombie_brg"] = brg_loadout;
+    
+    // Create loadout structure for mp_zombie_h2o
+    h2o_loadout = [];
+    h2o_loadout["weapons"] = ["iw5_dlcgun4zm_mp", "iw5_rhinozm_mp"];
+    h2o_loadout["levels"] = [2, 15];
+    h2o_loadout["tactical"] = "distraction_drone_zombie_mp";
+    loadouts["mp_zombie_h2o"] = h2o_loadout;
 
-    switch ( mapName )
+    if (isdefined(loadouts[level.mapName]))
     {
-        case "mp_zombie_brg":
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = [ "iw5_fusionzm_mp", "iw5_rhinozm_mp" ]; 
-            setweaponlevel( self, loadout[1], 1);
-            setweaponlevel( self, loadout[0], 1);
-
-            self settacticalweapon( "distraction_drone_zombie_mp" );
-            self giveweapon( "distraction_drone_zombie_mp" );
-            self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
-        break;
-
-        case "mp_zombie_h2o":
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = [ "iw5_dlcgun4zm_mp", "iw5_rhinozm_mp" ]; 
-            setweaponlevel( self, loadout[1], 15);
-            setweaponlevel( self, loadout[0], 2);
-            
-            self settacticalweapon( "distraction_drone_zombie_mp" );
-            self giveweapon( "distraction_drone_zombie_mp" );
-            self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
-        break;
-            return;
+        loadout = loadouts[level.mapName];
+        self takeweapon("iw5_titan45zm_mp");
+        
+        // Give weapons
+        for(i = 0; i < loadout["weapons"].size; i++)
+        {
+            self giveweapon(loadout["weapons"][i]);
+            setweaponlevel(self, loadout["weapons"][i], loadout["levels"][i]);
+        }
+        
+        // Give tactical
+        self settacticalweapon(loadout["tactical"]);
+        self giveweapon(loadout["tactical"]);
+        self setweaponammoclip(loadout["tactical"], 2);
     }
 }
 
 give_lr_loadout()
 {
-    mapName = maps\mp\_utility::getmapname();
     wait 5;
+    
+    // Initialize loadouts array
+    loadouts = [];
+    
+    // Create mp_zombie_lab loadout
+    lab_loadout = [];
+    lab_loadout["weapons"] = ["iw5_mahemzm_mp", "iw5_rhinozm_mp"];
+    lab_loadout["levels"] = [2, 2];
+    lab_loadout["tactical"] = "dna_aoe_grenade_zombie_mp";
+    loadouts["mp_zombie_lab"] = lab_loadout;
+    
+    // Create mp_zombie_brg loadout
+    brg_loadout = [];
+    brg_loadout["weapons"] = ["iw5_mahemzm_mp", "iw5_fusionzm_mp"];
+    brg_loadout["levels"] = [2, 2];
+    brg_loadout["tactical"] = "dna_aoe_grenade_zombie_mp";
+    loadouts["mp_zombie_brg"] = brg_loadout;
+    
+    // Create mp_zombie_ark loadout
+    ark_loadout = [];
+    ark_loadout["weapons"] = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"];
+    ark_loadout["levels"] = [2, 2];
+    ark_loadout["tactical"] = "dna_aoe_grenade_zombie_mp";
+    loadouts["mp_zombie_ark"] = ark_loadout;
+    
+    // Create mp_zombie_h2o loadout
+    h2o_loadout = [];
+    h2o_loadout["weapons"] = ["iw5_tridentzm_mp", "iw5_rhinozm_mp"];
+    h2o_loadout["levels"] = [2, 2];
+    h2o_loadout["tactical"] = "dna_aoe_grenade_zombie_mp";
+    loadouts["mp_zombie_h2o"] = h2o_loadout;
 
-    switch ( mapName )
+    if (isdefined(loadouts[level.mapName]))
     {
-        case "mp_zombie_lab": //Outbreak
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = [ "iw5_mahemzm_mp", "iw5_rhinozm_mp" ]; 
-            setweaponlevel( self, loadout[1], 2);
-            setweaponlevel( self, loadout[0], 2);
-            break;
-
-        case "mp_zombie_brg": //Infection
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = [ "iw5_mahemzm_mp", "iw5_fusionzm_mp" ];                 
-            setweaponlevel( self, loadout[1], 2);
-            setweaponlevel( self, loadout[0], 2); 
-            break;  
-
-        case "mp_zombie_ark":  //Carrier
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"];                
-            setweaponlevel( self, loadout[1], 2);
-            setweaponlevel( self, loadout[0], 2);    
-            break;      
-
-        case "mp_zombie_h2o": //Descent
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_tridentzm_mp", "iw5_rhinozm_mp"];               
-            setweaponlevel( self, loadout[1], 2);			
-            setweaponlevel( self, loadout[0], 2);             
-            break;    
-
-        return;                
+        loadout = loadouts[level.mapName];
+        self takeweapon("iw5_titan45zm_mp");
+        
+        for(i = 0; i < loadout["weapons"].size; i++)
+        {
+            self giveweapon(loadout["weapons"][i]);
+            setweaponlevel(self, loadout["weapons"][i], loadout["levels"][i]);
+        }
+        
+        self settacticalweapon(loadout["tactical"]);
+        self giveweapon(loadout["tactical"]);
+        self setweaponammoclip(loadout["tactical"], 2);
     }
-    self settacticalweapon( "dna_aoe_grenade_zombie_mp" );
-    self giveweapon( "dna_aoe_grenade_zombie_mp" );
-    self setweaponammoclip( "dna_aoe_grenade_zombie_mp", 2 );
 }
 
 give_hr_loadout()
 {
-    mapName = maps\mp\_utility::getmapname();
     wait 5;
+    
+    // Initialize loadouts array
+    loadouts = [];
+    
+    // Create mp_zombie_lab loadout
+    lab_loadout = [];
+    lab_loadout["weapons"] = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"];
+    lab_loadout["levels"] = [15, 15];
+    lab_loadout["tactical"] = "distraction_drone_zombie_mp";
+    loadouts["mp_zombie_lab"] = lab_loadout;
+    
+    // Create mp_zombie_brg loadout
+    brg_loadout = [];
+    brg_loadout["weapons"] = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"];
+    brg_loadout["levels"] = [15, 15];
+    brg_loadout["tactical"] = "distraction_drone_zombie_mp";
+    loadouts["mp_zombie_brg"] = brg_loadout;
+    
+    // Create mp_zombie_ark loadout
+    ark_loadout = [];
+    ark_loadout["weapons"] = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"];
+    ark_loadout["levels"] = [15, 15];
+    ark_loadout["tactical"] = "distraction_drone_zombie_mp";
+    loadouts["mp_zombie_ark"] = ark_loadout;
+    
+    // Create mp_zombie_h2o loadout
+    h2o_loadout = [];
+    h2o_loadout["weapons"] = ["iw5_tridentzm_mp", "iw5_dlcgun4zm_mp"];
+    h2o_loadout["levels"] = [15, 15];
+    h2o_loadout["tactical"] = "distraction_drone_zombie_mp";
+    loadouts["mp_zombie_h2o"] = h2o_loadout;
 
-    switch ( mapName )
+    if (isdefined(loadouts[level.mapName]))
     {
-        case "mp_zombie_lab": //Outbreak
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"]; 
-            setweaponlevel( self, loadout[1], 15);
-            setweaponlevel( self, loadout[0], 15);
-            break;
-
-        case "mp_zombie_brg": //Infection
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_mahemzm_mp", "iw5_exocrossbowzm_mp"];                 
-            setweaponlevel( self, loadout[1], 15);
-            setweaponlevel( self, loadout[0], 15); 
-            break;  
-
-        case "mp_zombie_ark":  //Carrier
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_linegunzm_mp", "iw5_fusionzm_mp"];                
-            setweaponlevel( self, loadout[1], 15);
-            setweaponlevel( self, loadout[0], 15);    
-            break;      
-
-        case "mp_zombie_h2o": //Descent
-            self takeweapon( "iw5_titan45zm_mp" );
-            loadout = ["iw5_tridentzm_mp", "iw5_dlcgun4zm_mp"];               
-            setweaponlevel( self, loadout[1], 15);			
-            setweaponlevel( self, loadout[0], 15);             
-            break;    
-
-        return;                
+        loadout = loadouts[level.mapName];
+        self takeweapon("iw5_titan45zm_mp");
+        
+        for(i = 0; i < loadout["weapons"].size; i++)
+        {
+            self giveweapon(loadout["weapons"][i]);
+            setweaponlevel(self, loadout["weapons"][i], loadout["levels"][i]);
+        }
+        
+        self settacticalweapon(loadout["tactical"]);
+        self giveweapon(loadout["tactical"]);
+        self setweaponammoclip(loadout["tactical"], 2);
     }
-    self settacticalweapon( "distraction_drone_zombie_mp" );
-    self giveweapon( "distraction_drone_zombie_mp" );
-    self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
 }
