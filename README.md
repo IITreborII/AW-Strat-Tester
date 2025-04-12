@@ -36,6 +36,7 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 
 ### Game Settings
 - Give weapons needed to perform a high-round game (typically the wonder-weapon, tactical grenade, and other weapons typically used in a high round game).
+- Opens all needed Doors, can be disabled like this: `open_doors 0`
 
 ### Weapon Options
 - Gives Weapon depending on what Preset you choice
