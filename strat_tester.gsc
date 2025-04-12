@@ -7,9 +7,10 @@
 #include maps\mp\gametypes\_hud_util;
 #include maps\mp\zombies\zombies_spawn_manager;
 #include maps\mp\zombies\_zombies;
+#include maps\mp\zombies\_doors;
 
 init()
-{
+{    
     level thread onPlayerConnect();
 }
 
@@ -35,13 +36,25 @@ onPlayerSpawned()
         self freezeControls(false);
 
         self thread settings();
+        // Initialize doors system & Open specific doors at map launch
+        opendoors();
+        // Delays Spawn when launching a map
         self thread wait_before_start();
+        // Sets the starting Round 
         self thread set_starting_round();
+        // Gives Exo Suit and all Perks depending on choice
         self thread give_upgrades();
+        // when you down you get your Perks back
         self thread give_perk_onRevive();
+        // adds a Velocity (movement speed) Hud to the game (doesnt work for infection) 
         self thread velocity_hud();
+        // adds a Zone Hud to the game (doesnt work for infection) 
         self thread zoneHud();
+        // gives multiple choices of loadouts 
         self thread give_loadout();
+
+        level.wavecounter = level.start_round;
+        startinground = level.wavecounter + 1;
 
         self iprintln("^5S^7trat Tester");
     }
@@ -54,32 +67,120 @@ settings()
 
     create_dvar("velocity_hud", 0);
     create_dvar("zone_hud", 0);
-
+    create_dvar("open_doors", 1);
     create_dvar("weapon_preset", "hr");
 
     create_dvar( "start_round", 30 );
-    level.start_round = getDvarInt( "start_round" );
     level.start_round = 30;
 
     create_dvar("wait_start", 30);
-    level.waitbs = getDvarInt("wait_start");
     level.waitbs = 30;
 
     resetmoney( 500000 );
 }
 
+opendoors()
+{   
+    open_doors = getDvarInt("open_doors");
+
+    if(open_doors == 0)
+        return;
+        
+    common_scripts\utility::flag_init("door_opened");
+
+    if (!isdefined(level.doorhintstrings))
+        level.doorhintstrings = [];
+
+    level.zombiedoors = common_scripts\utility::getstructarray("door", "targetname");
+    common_scripts\utility::array_thread(level.zombiedoors, ::init_door);
+
+    // Wait for the map to load
+    wait(1);
+    // Get current map name
+    current_map = maps\mp\_utility::getmapname();
+    
+    // Initialize doors_to_open array with ALL possible doors (cuz switch statement is buggy due to some #include stuff)
+    doors_to_open = [
+        // outbreak doors
+        "courtyard_to_roundabout",
+        "roundabout_to_lab",
+        "roundabout_to_military",
+        "courtyard_to_administration",
+        "administration_to_lab",
+        "military_to_experimentation",
+        
+        // infection doors
+        "warehouse_to_gas_station",
+        "warehouse_to_atlas",
+        "gas_station_to_sewer",
+        "atlas_to_sewer",
+        "sewer_to_burgertown",
+        "sewertrans_to_sewertunnel",
+        "sewermain_to_sewercave",
+        "burgertown_storage",
+        "gas_station_interior",
+        "atlas_command",
+        
+        // carrier doors
+        "sidebay_to_armory",
+        "rearbay_to_armory",
+        "cargo_elevator_to_cargo_bay",
+        "biomed_to_cargo_bay",
+        "armory_to_biomed",
+        "armory_to_cargo_elevator",
+        "medical_to_biomed",
+        "moonpool_to_cargo_elevator",
+        "sidebay_to_medical",
+        "rearbay_to_moonpool",
+
+        // descent doors
+        "start_to_zone_01",
+        "start_to_zone_02",
+        "zone_01_to_atrium",
+        "zone_01_to_zone_01a",
+        "zone_02_to_zone_01",
+        "zone_02_to_zone_02a",
+        "zone_02a_to_venthall",
+        "venthall_to_zone_03",
+        "venthall_to_atrium",
+        "atrium_to_zone_04"
+    ];
+    
+    // Open all doors that exist on this map
+    foreach(door_flag in doors_to_open)
+    {
+        foreach(door in level.zombiedoors)
+        {
+            if(isdefined(door.script_flag) && door.script_flag == door_flag)
+            {
+                // Open the door by simulating a player purchase
+                door notify("open", undefined);
+                
+                // Set the door's opened bitmask
+                if(isdefined(level.doorbitmaskarray[door_flag]))
+                {
+                    level.doorsopenedbitmask |= level.doorbitmaskarray[door_flag];
+                }
+            }
+        }
+    }
+    
+    // Set the global door opened flag
+    common_scripts\utility::flag_set("door_opened");
+}
+
 set_starting_round()
 {
+    level.start_round = getDvarInt( "start_round" );
     level.start_round -= 1;    
-
-    level.wavecounter = level.start_round;
-    startinground = level.wavecounter + 1;
 }
 
 wait_before_start()
 {
     self endon("disconnect");
     level endon("game_ended");
+
+    level.waitbs = getDvarInt("wait_start");
 
     maps\mp\zombies\_util::pausezombiespawning(1);
     self.waithud.label = &"Starting in: ^5";
@@ -451,4 +552,3 @@ give_hr_loadout()
     self giveweapon( "distraction_drone_zombie_mp" );
     self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
 }
-
