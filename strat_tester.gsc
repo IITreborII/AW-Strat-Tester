@@ -51,22 +51,6 @@ persistentPlayerInit()
     {
         self thread give_perk_onRevive();
     }
-    self thread initializeHUD();
-}
-
-initializeHUD()
-{
-    self endon("disconnect");
-    
-    // Only create HUD elements if enabled
-    if (getDvarInt("velocity_hud"))
-    {
-        self thread velocity_hud();
-    }
-    if (getDvarInt("zone_hud"))
-    {
-        self thread zoneHud();
-    }
 }
 
 onPlayerSpawned()
@@ -96,24 +80,6 @@ onPlayerSpawned()
     }
 }
 
-give_player_assets()
-{
-    self endon("disconnect");
-    
-    // Initialize counter
-    self.assetsThreadsComplete = 0;
-    
-    // Start both threads
-    self thread give_upgrades();
-    self thread give_loadout();
-    
-    // Wait for both threads to complete
-    while(self.assetsThreadsComplete < 2)
-    {
-        wait(0.05);
-    }
-}
-
 settings()
 {
     // Group related dvars together
@@ -122,8 +88,6 @@ settings()
 
     // Array of dvar pairs [name, value]
     dvars = [];
-    dvars[dvars.size] = ["velocity_hud", "0"];
-    dvars[dvars.size] = ["zone_hud", "0"];
     dvars[dvars.size] = ["open_doors", "1"];
     dvars[dvars.size] = ["weapon_preset", "hr"];
     dvars[dvars.size] = ["start_round", "30"];
@@ -251,23 +215,35 @@ wait_before_start()
     level endon("game_ended");
 
     level.waitbs = getDvarInt("wait_start");
+    
+    // Safety check to ensure waitbs is a reasonable number
+    if (!isDefined(level.waitbs) || level.waitbs < 0)
+    {
+        level.waitbs = 5; // default value
+    }
+    else if (level.waitbs > 30)
+    {
+        level.waitbs = 30; // cap at 30 seconds
+    }
 
     maps\mp\zombies\_util::pausezombiespawning(1);
     
     //Hud positioning
     self.waithud = newHudElem(self);
-    self.waithud.horzAlign = "center";
-    self.waithud.vertAlign = "middle";
-    self.waithud.alignX = "center";
-    self.waithud.alignY = "middle";
-    self.waithud.x = 0;
-    self.waithud.y = 0;
-    self.waithud.fontscale = 1.5;
+    self.waithud.horzAlign = "center";  // Horizontal center
+    self.waithud.vertAlign = "top";     // Vertical top
+    self.waithud.alignX = "center";     // Text alignment center
+    self.waithud.alignY = "middle";     // Text alignment middle (for multi-line)
+    self.waithud.x = 0;                 // No horizontal offset
+    self.waithud.y = 20;                // 20 pixels down from top
+    self.waithud.fontscale = 1.5;       // Slightly larger font
+    self.waithud.color = (1, 1, 1);     // White color
+    self.waithud.glowColor = (0.2, 0.8, 1); // Light blue glow
+    self.waithud.glowAlpha = 0.8;
     self.waithud.label = &"Starting in: ";
-    self.waithud setText(level.waitbs);
-    self.waithud.hidewheninmenu = true;
+    self.waithud.hideWhenInMenu = true;
 
-    while(level.waitbs > -1)
+    while(level.waitbs >= 0) // changed to >= 0 to properly handle 0 case
     {
         self.waithud setText(level.waitbs);
         wait 1;
@@ -283,6 +259,24 @@ wait_before_start()
     // Notify completion
     level.completedThreads++;
     self notify("done");
+}
+
+give_player_assets()
+{
+    self endon("disconnect");
+    
+    // Initialize counter
+    self.assetsThreadsComplete = 0;
+    
+    // Start both threads
+    self thread give_upgrades();
+    self thread give_loadout();
+    
+    // Wait for both threads to complete
+    while(self.assetsThreadsComplete < 2)
+    {
+        wait(0.05);
+    }
 }
 
 give_loadout()
@@ -341,58 +335,6 @@ give_perk_onRevive()
     {
         self waittill("revive_trigger");
         self thread give_upgrades(); // Reuse the same function
-    }
-}
-
-velocity_hud()
-{
-    self endon("disconnect");
-    level endon("game_ended");
-
-    vel_hud = newClientHudElem(self);
-    vel_hud.alignx = "right";
-    vel_hud.aligny = "top";
-    vel_hud.horzalign = "user_left";
-    vel_hud.vertalign = "user_top";
-    vel_hud.x -= 20;
-    vel_hud.y += 60;
-    vel_hud.fontscale = 1.0;
-    vel_hud.hidewheninmenu = 1;
-    vel_hud.label = &"Velocity: ";
-    vel_hud.alpha = 1;
-
-    while(true)
-    {
-        self.newvel = self getvelocity();
-        self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
-        vel_hud setvalue(floor(self.newvel));
-        wait 0.05; 
-    }
-}
-
-zoneHud()
-{
-    self endon("disconnect");
-    level endon("game_ended");
-
-    zone_hud = newClientHudElem(self);
-    zone_hud.alignx = "right";
-    zone_hud.aligny = "top";
-    zone_hud.horzalign = "user_left";
-    zone_hud.vertalign = "user_top";
-    zone_hud.x -= 20;
-    zone_hud.y += 75;
-    zone_hud.fontscale = 1.0;
-    zone_hud.hidewheninmenu = 1;
-    zone_hud.alpha = 1;
-
-    while(true)
-    {
-        if (isdefined(self.currentzone))
-        {
-            zone_hud setText(self.currentzone);
-        }
-        wait 0.1;
     }
 }
 
