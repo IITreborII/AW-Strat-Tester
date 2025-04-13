@@ -2,7 +2,6 @@
 
 **HUD**
 - Trap Timer
-- Zombies remaining
 - Seconds Per Horde (Might not be possible to implement)
 - Health Bar
 
@@ -20,7 +19,6 @@
 
 **Game Settings**
 - Turn on/off the power at start
-- Open doors on start
 - Enable / Disable infinite ammo
 
 **Weapon Options**
