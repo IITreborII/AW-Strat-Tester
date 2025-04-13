@@ -39,6 +39,21 @@ onPlayerConnect()
     }
 }
 
+initializeHUD()
+{
+    self endon("disconnect");
+    
+    // Only create HUD elements if enabled
+    if (getDvarInt("zombie_remaining"))
+    {
+        self thread zombie_remaining();
+    }
+    if (getDvarInt("velocity_hud"))
+    {
+        self thread velocity_hud();
+    }
+}
+
 persistentPlayerInit()
 {
     self endon("disconnect");
@@ -51,6 +66,7 @@ persistentPlayerInit()
     {
         self thread give_perk_onRevive();
     }
+    self thread initializeHUD();
 }
 
 onPlayerSpawned()
@@ -92,6 +108,9 @@ settings()
     dvars[dvars.size] = ["weapon_preset", "hr"];
     dvars[dvars.size] = ["start_round", "30"];
     dvars[dvars.size] = ["wait_start", "30"];
+
+    dvars[dvars.size] = ["zombie_remaining", "0"];
+    dvars[dvars.size] = ["velocity_hud", "0"];
 
     // Create all dvars using while loop
     i = 0;
@@ -479,5 +498,68 @@ give_hr_loadout()
         self settacticalweapon(loadout["tactical"]);
         self giveweapon(loadout["tactical"]);
         self setweaponammoclip(loadout["tactical"], 2);
+    }
+}
+
+//[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[HUD ELEMENTS]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+
+zombie_remaining()
+{
+    self endon("disconnect");
+    level endon("game_ended");
+    self waittill("spawned_player");
+    var_0 = getdvar( "mapname" );
+
+    zT_hud = newClientHudElem(self);
+    zT_hud.alignx = "right";
+    zT_hud.aligny = "top";
+    zT_hud.horzalign = "user_left";
+    zT_hud.vertalign = "user_top";
+    zT_hud.x += 20;
+    zT_hud.y += 80;
+    zT_hud.fontscale = 1;
+    zT_hud.hidewheninmenu = 1;
+    zT_hud.label = &"Zombies remaining: ";
+    zT_hud.alpha = 1;
+    while(true)
+    {
+        if ( var_0 == "mp_zombie_lab" || "mp_zombie_ark" || "mp_zombie_h2o" )
+        {
+            var_1 = maps\mp\zombies\zombies_spawn_manager::calculatetotalai();
+            var_2 = int(self.kills);
+            var_3 = int(self.killsatroundstart);
+            var_4 = (var_2 - var_3);
+            var_5 = (var_1 - var_4); 
+            zT_hud setvalue(var_5);
+            wait 0.1; 
+        }
+        wait 0.1; 
+    }
+}
+
+velocity_hud()
+{
+    self endon("disconnect");
+    level endon("game_ended");
+    self waittill("spawned_player");
+
+    vel_hud = newClientHudElem(self);
+    vel_hud.alignx = "right";
+    vel_hud.aligny = "top";
+    vel_hud.horzalign = "user_left";
+    vel_hud.vertalign = "user_top";
+    vel_hud.x += 20;
+    vel_hud.y += 70;
+    vel_hud.fontscale = 1.0;
+    vel_hud.hidewheninmenu = 1;
+    vel_hud.label = &"Velocity: ";
+    vel_hud.alpha = 1;
+
+    while(true)
+    {
+        self.newvel = self getvelocity();
+        self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
+        vel_hud setvalue(floor(self.newvel));
+        wait 0.05; 
     }
 }
