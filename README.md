@@ -22,7 +22,8 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 - Spawn in with some, all, or no perks
 
 ### HUD
-- Current Zone
+- Remaining Zombies
+- Current Zone //needs fix
 - Velocity HUD
 
 ### Round Settings
