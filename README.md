@@ -77,9 +77,7 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 
 - [FOEDI](https://github.com/FOEDI)
 
-- [llGaryyll](https://www.twitch.tv/ligaryyil) 
+- [llGaryyll](https://www.twitch.tv/ligaryyil)
 
-## Others
-
-DaddyDontStop
+- [DaddyDontStop](#)
 
