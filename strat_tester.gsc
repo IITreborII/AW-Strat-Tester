@@ -8,10 +8,11 @@
 #include maps\mp\_utility;
 #include common_scripts\utility;
 #include maps\mp\gametypes\_hud_util;
+#include maps\mp\zombies\_power;
 
 init()
 {    
-    level.mapName = maps\mp\_utility::getmapname();
+ level.mapName = maps\mp\_utility::getmapname();
     
     // Pre-calculate door bitmasks if they don't exist
     if (!isdefined(level.doorbitmaskarray))
@@ -42,6 +43,8 @@ onPlayerConnect()
 initializeHUD()
 {
     self endon("disconnect");
+
+    self thread constant_hud_text();
     
     // Only create HUD elements if enabled
     if (getDvarInt("zombie_remaining"))
@@ -73,7 +76,6 @@ onPlayerSpawned()
 {
     self endon("disconnect");
     level endon("game_ended");
-    iprintln("^5S^7trat Tester");
     
     for(;;)
     {
@@ -105,9 +107,12 @@ settings()
     // Array of dvar pairs [name, value]
     dvars = [];
     dvars[dvars.size] = ["open_doors", "1"];
-    dvars[dvars.size] = ["weapon_preset", "hr"];
+    dvars[dvars.size] = ["activate_power", "1"];
+
     dvars[dvars.size] = ["start_round", "30"];
     dvars[dvars.size] = ["wait_start", "30"];
+
+    dvars[dvars.size] = ["weapon_preset", "hr"];
 
     dvars[dvars.size] = ["zombie_remaining", "0"];
     dvars[dvars.size] = ["velocity_hud", "0"];
@@ -234,50 +239,18 @@ wait_before_start()
     level endon("game_ended");
 
     level.waitbs = getDvarInt("wait_start");
-    
-    // Safety check to ensure waitbs is a reasonable number
-    if (!isDefined(level.waitbs) || level.waitbs < 0)
-    {
-        level.waitbs = 5; // default value
-    }
-    else if (level.waitbs > 30)
-    {
-        level.waitbs = 30; // cap at 30 seconds
-    }
 
     maps\mp\zombies\_util::pausezombiespawning(1);
-    
-    //Hud positioning
-    self.waithud = newHudElem(self);
-    self.waithud.horzAlign = "center";  // Horizontal center
-    self.waithud.vertAlign = "top";     // Vertical top
-    self.waithud.alignX = "center";     // Text alignment center
-    self.waithud.alignY = "middle";     // Text alignment middle (for multi-line)
-    self.waithud.x = 0;                 // No horizontal offset
-    self.waithud.y = 20;                // 20 pixels down from top
-    self.waithud.fontscale = 1.5;       // Slightly larger font
-    self.waithud.color = (1, 1, 1);     // White color
-    self.waithud.glowColor = (0.2, 0.8, 1); // Light blue glow
-    self.waithud.glowAlpha = 0.8;
-    self.waithud.label = &"Starting in: ";
-    self.waithud.hideWhenInMenu = true;
 
-    while(level.waitbs >= 0) // changed to >= 0 to properly handle 0 case
+    while(level.waitbs > -1)
     {
-        self.waithud setText(level.waitbs);
+        self.waithud settext(level.waitbs);
         wait 1;
-        level.waitbs--;
+        level.waitbs --;
     }
-    
+
     maps\mp\zombies\_util::pausezombiespawning(0);
-    if(isdefined(self.waithud))
-    {
-        self.waithud destroy();
-    }
-    
-    // Notify completion
-    level.completedThreads++;
-    self notify("done");
+    self.waithud destroy();
 }
 
 give_player_assets()
@@ -561,5 +534,32 @@ velocity_hud()
         self.newvel = sqrt(float(self.newvel[0] * self.newvel[0]) + float(self.newvel[1] * self.newvel[1]));
         vel_hud setvalue(floor(self.newvel));
         wait 0.05; 
+    }
+}
+
+constant_hud_text()
+{
+    self endon("disconnect");
+    level endon("game_ended");
+    self waittill("spawned_player");
+
+    if (level.mapName == "mp_zombie_brg")
+        return;
+
+    hud_text = self createfontstring("default", 1.4);
+    hud_text setpoint("TOPRIGHT", "TOPRIGHT", -20, 20);     
+    hud_text.label = &"Strat Tester v.1.3.1";
+    hud_text.sort = 1000; 
+    hud_text thread keep_alive();
+}
+
+keep_alive()
+{
+    self endon("destroyed");
+    
+    while(true)
+    {
+        wait 5;
+        // This just keeps the thread alive
     }
 }
