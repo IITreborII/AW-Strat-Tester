@@ -49,8 +49,6 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 
 ```weapon_preset "hr/lr/fr"```
 
-**Missing a crucial feature for you to get better at the game? We are open to requests!**
-
 # Cheats
 
 ## List of Useful Cheats
