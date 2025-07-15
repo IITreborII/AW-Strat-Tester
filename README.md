@@ -28,16 +28,16 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 
 ### Round Settings
 - Set various starting rounds
-    - If you want to start on a round that is not in the options, you can do so with `start_round <number>` and restarting.
+    - If you want to start on a round that is not in the options, you can do so with `round <number>` and restarting.
 - Set a delay to navigate to where you need to start the round at game start
-    - You can set a custom delay by typing `wait_start <seconds>`
+    - You can set a custom delay by typing `delay <seconds>`
 
 ### Perks & Drops
 - Choose what perks you spawn in with between High Rounds, First Room...
 
 ### Game Settings
 - Give weapons needed to perform a high-round game (typically the wonder-weapon, tactical grenade, and other weapons typically used in a high round game).
-- Opens all needed Doors, can be disabled like this: `open_doors 0`
+- Opens all needed Doors, can be disabled like this: `doors 0`
 
 ### Weapon Options
 - Gives Weapon depending on what Preset you choice
