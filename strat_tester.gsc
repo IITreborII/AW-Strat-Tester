@@ -83,6 +83,8 @@ settings()
 
     dvars[dvars.size] = ["round", "60"];
     dvars[dvars.size] = ["delay", "30"];
+    dvars[dvars.size] = ["loadout", "1"];
+    dvars[dvars.size] = ["perks", "1"];
 
     dvars[dvars.size] = ["zombie_hud", "0"];
     dvars[dvars.size] = ["velocity_hud", "0"];
@@ -209,6 +211,9 @@ give_player_assets()
 
 upgrades()
 {
+    if(getDvarInt("perks") == 0)
+        return;
+
     wait 5;
     switch(level.getMapName)
     {
@@ -252,6 +257,9 @@ upgrades()
 
 upgrades_revive()
 {
+    if(getDvarInt("perks") == 0)
+        return;
+
     wait 2;
     while(1)
     {
@@ -281,6 +289,11 @@ upgrades_revive()
 
 loadout()
 {
+    if(getDvarInt("loadout") == 0)
+        return;
+
+    if(getDvarInt("loadout") == 1) //Default Loadout
+    {
     switch(level.getMapName)
     {
         case "mp_zombie_lab":
@@ -319,6 +332,33 @@ loadout()
     self settacticalweapon( "distraction_drone_zombie_mp" );
     self giveweapon( "distraction_drone_zombie_mp" );
     self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
+    }
+
+    if(getDvarInt("loadout") == 2) //First Room Loadout
+    {
+        switch(level.getMapName)
+        {
+            
+        case "mp_zombie_brg":
+            loadout = ["iw5_rhinozm_mp", "iw5_microwavezm_mp"];                 
+            setweaponlevel( self, loadout[1], 15);
+            setweaponlevel( self, loadout[0], 15);
+                wait 5;
+            self takeweapon( "iw5_titan45zm_mp" );   
+            break;
+        case "mp_zombie_h2o":
+            loadout = ["iw5_rhinozm_mp", "iw5_dlcgun4zm_mp"];               
+            setweaponlevel( self, loadout[1], 15);			
+            setweaponlevel( self, loadout[0], 15);  
+                wait 5;
+            self takeweapon( "iw5_titan45zm_mp" );           
+            break;    
+        return;     
+        }
+        self settacticalweapon( "distraction_drone_zombie_mp" );
+        self giveweapon( "distraction_drone_zombie_mp" );
+        self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
+    }
 }
 
 //HUD Section
