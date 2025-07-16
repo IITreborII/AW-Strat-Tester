@@ -19,27 +19,31 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 ### General
 - 500,000 points on spawn
 - Perks reserved on down
-- Spawn in with all or no perks
 
 ### HUD
 - Remaining Zombies
-- Current Zone 
+    - `zombie_hud 1`
+- Current Zone
+    - `zone_hud 1`
 - Velocity HUD
+    - `velocity_hud 1`
 
 ### Round Settings
 - Set various starting rounds
-    - If you want to start on a round that is not in the options, you can do so with `round <number>` and restarting.
+    `round <number>` and restarting.
 - Set a delay to navigate to where you need to start the round at game start
-    - You can set a custom delay by typing `delay <seconds>`
+    `delay <seconds>`
 
 ### Perks & Drops
-- Choose weither you spawn with Perks or not like this
+- Choose weither you spawn with Perks or not 
     - `perks 0` spawn with no Perks
     - `perks 1` spawn with all Perks
 
 ### Game Settings
-- Give weapons needed to perform a high-round game (typically the wonder-weapon, tactical grenade, and other weapons typically used in a high round game).
-- Opens all needed Doors, can be disabled like this: `doors 0`
+- Open/Close all Doors:
+    - `doors 0`
+- Activate/Deactivate all Generators
+    - `power 0`
 
 ### Weapon Options
 - Gives Weapon depending on what Preset you choice
