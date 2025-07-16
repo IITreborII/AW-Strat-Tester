@@ -16,7 +16,6 @@
 - Toggle whether powerups spawn or not
 
 **Game Settings**
-- Turn on/off the power at start
 - Enable / Disable infinite ammo
 
 **Map Options**
