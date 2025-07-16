@@ -260,20 +260,20 @@ upgrades()
             break;
         case "mp_zombie_ark":
             perkterminalgive(self, "exo_suit");
+            perkterminalgive(self, "exo_tacticalArmor");
             perkterminalgive(self, "exo_revive");
             perkterminalgive(self, "exo_stabilizer");
             perkterminalgive(self, "exo_slam");
             perkterminalgive(self, "specialty_fastreload");
-            perkterminalgive(self, "exo_tacticalArmor");
             perkterminalgive(self, "exo_health");
             break;
         case "mp_zombie_h2o":
             perkterminalgive(self, "exo_suit");
+            perkterminalgive(self, "exo_tacticalArmor");
             perkterminalgive(self, "exo_revive");
             perkterminalgive(self, "exo_stabilizer");
             perkterminalgive(self, "exo_slam");
             perkterminalgive(self, "specialty_fastreload");
-            perkterminalgive(self, "exo_tacticalArmor");
             perkterminalgive(self, "exo_health");
             break;
         return;
@@ -354,9 +354,12 @@ loadout()
             break;    
         return;                
     }
+    wait 5;
     self settacticalweapon( "distraction_drone_zombie_mp" );
-    self giveweapon( "distraction_drone_zombie_mp" );
-    self setweaponammoclip( "distraction_drone_zombie_mp", 2 );
+    self setweaponammoclip( "distraction_drone_zombie_mp", 3 );
+
+    self setlethalweapon( "contact_grenade_zombies_mp" );
+    self setweaponammoclip( "contact_grenade_zombies_mp", 5 );
     }
 
     if(getDvarInt("loadout") == 2) //First Room Loadout
