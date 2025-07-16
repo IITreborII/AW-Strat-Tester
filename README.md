@@ -19,11 +19,11 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 ### General
 - 500,000 points on spawn
 - Perks reserved on down
-- Spawn in with some, all, or no perks
+- Spawn in with all or no perks
 
 ### HUD
 - Remaining Zombies
-- Current Zone //needs fix
+- Current Zone 
 - Velocity HUD
 
 ### Round Settings
@@ -33,7 +33,9 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
     - You can set a custom delay by typing `delay <seconds>`
 
 ### Perks & Drops
-- Choose what perks you spawn in with between High Rounds, First Room...
+- Choose weither you spawn with Perks or not like this
+    - `perks 0` spawn with no Perks
+    - `perks 1` spawn with all Perks
 
 ### Game Settings
 - Give weapons needed to perform a high-round game (typically the wonder-weapon, tactical grenade, and other weapons typically used in a high round game).
@@ -41,13 +43,9 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 
 ### Weapon Options
 - Gives Weapon depending on what Preset you choice
-    - High Rounds (hr), Low Rounds (lr), First Room (fr)...
-
-### Weapon presets
-
-- How to change Weapon Preset
-
-```weapon_preset "hr/lr/fr"```
+    - `loadout 0` spawn with no loadout
+    - `loadout 1` spawn with default ladout
+    - `loadout 2` spawn with first room loadout for Infection & Descent 
 
 # Cheats
 
