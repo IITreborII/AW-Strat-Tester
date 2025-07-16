@@ -15,6 +15,7 @@ init()
     level.getMapName = maps\mp\_utility::getMapName();
     level thread onPlayerConnect();
     level thread doors();
+    level thread power();
 }
 
 onPlayerConnect()
@@ -79,7 +80,7 @@ settings()
 
     dvars = [];
     dvars[dvars.size] = ["doors", "1"];
-    //dvars[dvars.size] = ["power", "1"];
+    dvars[dvars.size] = ["power", "1"];
 
     dvars[dvars.size] = ["round", "60"];
     dvars[dvars.size] = ["delay", "30"];
@@ -95,6 +96,30 @@ settings()
     {
         create_dvar(dvars[i][0], dvars[i][1]);
         i++;
+    }
+}
+
+power()
+{
+    if(getDvarInt("power") == 0)
+        return;
+
+    wait 1;
+
+    if (!isdefined(level.power_switches))
+        return;
+
+    foreach (power_switch in level.power_switches)
+    {
+        common_scripts\utility::flag_set(power_switch.script_flag);
+
+        power_switch notify("on");
+
+        foreach (ent in power_switch.showents)
+            ent show();
+
+        foreach (ent in power_switch.hideents)
+            ent hide();
     }
 }
 
