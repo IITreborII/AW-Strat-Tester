@@ -60,15 +60,6 @@ This mod is meant to be an all-encompassing mod, with loads of features and opti
 - `/noclip` flying
 - `/fast_restart` restart map
 
-## List of Weapon Commands 
-
-- `give distraction_drone_zombie_mp` Drone 
-- `give dna_aoe_grenade_zombie_mp` Nano
-- `give iw5_microwavezm_mp` Magnetron
-- `give iw5_linegunzm_mp` Limbo
-- `give iw5_tridentzm_mp ` Trident
-- `give iw5_dlcgun4zm_mp` Blunderbuss
-
 # Credits
 
 ## Direct Contributors
